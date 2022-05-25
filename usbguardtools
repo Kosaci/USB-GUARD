@@ -1,0 +1,392 @@
+#!/bin/bash
+# Script written by Warith Al Maawali  
+# (c) 2022 Founder of Eagle Eye Digital Solutions
+# Discord channel https://discord.gg/KEFErEx
+# Twitter http://twitter.com/warith2020
+# Linkedin http://www.linkedin.com/in/warith1977
+# http://www.digi77.com
+# http://www.om77.net
+# Kodachi  OS/Software/Code are strictly protected by LICENSE terms at /home/kodachi/LICENSE
+#
+#
+# script starts here:
+
+
+cd $(dirname $0) 
+source Globalconfig;
+
+
+while true
+do
+	userInput=0;
+	cd $(dirname $0) 
+	clear;
+	echo "Please choose how to protect your PC via USB port changes:";
+	echo "";
+	echo "USB Guard Tools";
+	echo "1) Enable USB guard";
+	echo "2) Disable USB guard";
+        echo "R)  Reject USB guard";
+	echo "2a) Allow USB device";
+	echo "2b) Block USB device";
+	echo "2c) list devices";
+	echo "3) Allow all USB devices";
+	echo "4) Block all USB devices";
+	echo "5) Enable notification";
+	echo "6) Disable notification";
+	echo "7) Change USB guard config";
+	echo "8) Change USB guard rules";
+	echo "9) Clean USB guard rules file";
+	echo "";
+	echo "USB Kill Tools";
+	echo "10) Enable USB kill";
+	echo "11) Disable USB kill";
+	echo "12) Change USB kill config";
+	echo "";	
+	echo "13) Exit";
+	
+	
+	echo "Type the number of your selection";
+	read n
+	case $n in
+		1) userInput=1;;
+		2) userInput=2;;
+		2a) userInput=2a;;
+		2b) userInput=2b;;
+		2c) userInput=2c;;
+		3) userInput=3;;
+		4) userInput=4;;
+		5) userInput=5;;
+		6) userInput=6;;
+		7) userInput=7;;
+		8) userInput=8;;
+		9) userInput=9;;
+		10) userInput=10;;
+		11) userInput=11;;
+		12) userInput=12;;
+		13) userInput=13;;
+		R) userInput="R";;
+		r) userInput="r";;
+		*) echo "sorry wrong value";sleep 1;;
+	esac
+
+
+	if [[ $userInput = "13" ]]
+	then
+		clear;
+		echo "bye";
+		echo "";
+		exit 1;
+	fi
+
+
+	
+
+	if [[ $userInput = "1" ]]
+	then
+		clear;
+		echo "";
+		 
+        if(sudo systemctl status usbguard |grep inactive > /dev/null)
+        then
+			
+			sudo systemctl start usbguard;
+			sudo systemctl enable usbguard;
+			sudo systemctl start usbguard-dbus;
+			sudo systemctl enable usbguard-dbus 
+			sudo echo "Yes" > /home/madriyana/usbguard;
+			
+			SERVICE='usbguard-applet-qt';
+			if (ps ax | grep -v grep | grep $SERVICE > /dev/null)
+			then	 
+				echo "";
+			else
+				sudo nohup usbguard-applet-qt &  > /dev/null 2>&1;
+				sleep 1;
+				clear;
+			fi
+			echo "USB guard enabled";
+        else
+			echo "USB guard is already enabled";
+        fi
+			
+		echo "";
+		read -n 1 -s -r -p "${reset}Press any key to continue.....";
+	fi
+	
+	
+	
+	
+	if [[ $userInput = "2" ]]
+	then
+		clear;
+		echo "";
+		 
+        if(sudo systemctl status usbguard|grep inactive > /dev/null)
+        then
+			echo "USB guard is already disbled";
+        else
+        
+			sudo systemctl stop usbguard;
+			sudo systemctl disable usbguard;
+			sudo systemctl stop usbguard-dbus;
+			sudo systemctl disable usbguard-dbus;
+			sudo killall usbguard-applet-qt > /dev/null 2>&1;
+			sleep 1;
+			clear;
+			echo "USB guard disabled";
+        fi
+			
+		echo "";
+		read -n 1 -s -r -p "${reset}Press any key to continue.....";
+	fi
+	
+	if [[ $userInput = "2a" ]]
+	then 
+		clear;
+		echo "";
+	if(cat /etc/usbguard/usbguard-daemon.conf|grep ImplicitPolicyTarget=reject > /dev/null)
+        then
+                        echo "USB guard is already in reject mode you can not add device";
+	else
+		echo "Enter the device ID"
+		read a 
+		sudo usbguard allow-device $a
+	fi 
+		echo "";
+                read -n 1 -s -r -p "${reset}Press any key to continue.....";
+        fi
+
+	if [[ $userInput = "2b" ]]
+        then 
+                clear;
+                echo "";
+        if(cat /etc/usbguard/usbguard-daemon.conf|grep ImplicitPolicyTarget=reject > /dev/null)
+        then
+                        echo "USB guard is already in reject mode it is already blocked all devices";
+        else
+                echo "Enter the device ID"
+                read b
+                sudo usbguard block-device $b
+        fi 
+                echo "";
+                read -n 1 -s -r -p "${reset}Press any key to continue.....";
+        fi
+
+	if [[ $userInput = "2c" ]]
+	then
+		clear;
+		lsusb
+		echo "";
+                read -n 1 -s -r -p "${reset}Press any key to continue.....";
+
+	fi
+
+	if [[ $userInput = "3" ]]
+	then
+		clear;
+		echo "";
+		 
+        if(cat /etc/usbguard/usbguard-daemon.conf|grep ImplicitPolicyTarget=allow > /dev/null)
+        then
+			echo "USB guard is already in allow all mode";
+        else
+            sudo sed -i 's/^\(ImplicitPolicyTarget\s*=\s*\).*$/\1allow/' /etc/usbguard/usbguard-daemon.conf
+			sudo systemctl restart usbguard;
+			echo "USB guard set to allow all USB devices";
+        fi
+			
+		echo "";
+		read -n 1 -s -r -p "${reset}Press any key to continue.....";
+	fi
+	
+	if [[ $userInput = "R"  ]] || [[ $userInput = "r" ]]
+        then
+                clear;
+                echo "";
+
+        if(cat /etc/usbguard/usbguard-daemon.conf|grep ImplicitPolicyTarget=reject > /dev/null)
+        then
+                        echo "USB guard is already in reject all mode";
+        else
+            sudo sed -i 's/^\(ImplicitPolicyTarget\s*=\s*\).*$/\1reject/' /etc/usbguard/usbguard-daemon.conf
+                        sudo systemctl restart usbguard;
+                        echo "USB guard set to reject all USB devices";
+        fi
+
+                echo "";
+                read -n 1 -s -r -p "${reset}Press any key to continue.....";
+        fi
+
+
+	
+	if [[ $userInput = "4" ]]
+	then
+		clear;
+		echo "";
+		 
+        if(cat /etc/usbguard/usbguard-daemon.conf|grep ImplicitPolicyTarget=block > /dev/null)
+        then
+			echo "USB guard is already in block all mode";
+        else
+            sudo sed -i 's/^\(ImplicitPolicyTarget\s*=\s*\).*$/\1block/' /etc/usbguard/usbguard-daemon.conf
+			sudo systemctl restart usbguard;
+			echo "USB guard set to block all USB devices";
+        fi
+			
+		echo "";
+		read -n 1 -s -r -p "${reset}Press any key to continue.....";
+	fi
+	
+
+	if [[ $userInput = "5" ]]
+	then
+		clear;
+		echo "";
+	    SERVICE='usbguard-applet-qt';
+		if (ps ax | grep -v grep | grep $SERVICE > /dev/null)
+		then	 
+       
+			echo "USB guard notification is already on";
+        else
+          nohup usbguard-applet-qt &  > /dev/null 2>&1; 
+          #usbguard-applet-qt & > /dev/null 2>&1;
+          #disown;
+          #bash test;
+          sleep 1;
+		  clear;
+          echo "USB guard notification set on";
+        fi
+			
+		echo "";
+		read -n 1 -s -r -p "${reset}Press any key to continue.....";
+	fi
+	
+	
+	
+	
+	if [[ $userInput = "6" ]]
+	then
+		clear;
+		echo "";
+	    SERVICE='usbguard-applet-qt';
+		if (ps ax | grep -v grep | grep $SERVICE > /dev/null)
+		then	 
+       
+			sudo killall usbguard-applet-qt  > /dev/null 2>&1;
+			sleep 1;
+		    clear;
+			echo "USB guard notification set off";
+        else
+           echo "USB guard notification is already off";
+			
+        fi
+			
+		echo "";
+		read -n 1 -s -r -p "${reset}Press any key to continue.....";
+	fi
+	
+	
+	
+	if [[ $userInput = "7" ]]
+	then
+		clear;
+		echo "Opening /etc/usbguard/usbguard-daemon.conf";
+		sleep 2;
+		sudo gedit /etc/usbguard/usbguard-daemon.conf > /dev/null 2>&1;
+		sudo systemctl restart usbguard;
+		echo "";
+		read -n 1 -s -r -p "${reset}Press any key to continue.....";
+	fi
+	
+	
+	if [[ $userInput = "8" ]]
+	then
+		clear;
+		echo "Opening /etc/usbguard/rules.conf ";
+		sleep 2;
+		sudo gedit /etc/usbguard/rules.conf > /dev/null 2>&1; 
+		sudo systemctl restart usbguard;
+		echo "";
+		read -n 1 -s -r -p "${reset}Press any key to continue.....";
+	fi
+	
+	
+	if [[ $userInput = "9" ]]
+	then
+		clear;
+		echo "Cleaning /etc/usbguard/rules.conf ";
+		sleep 2;
+		sudo cat > /etc/usbguard/rules.conf & > /dev/null 2>&1; 
+		sudo systemctl restart usbguard;
+		echo "";
+		read -n 1 -s -r -p "${reset}Press any key to continue.....";
+	fi
+	
+		
+	
+	if [[ $userInput = "10" ]]
+	then
+		clear;
+		echo "";
+		 
+        SERVICE='usbkill';
+		if (ps ax | grep -v grep | grep $SERVICE > /dev/null)
+		then	 
+			echo "USB kill is already running";
+        else
+            #cd $Myhome_path/silk-guardian-master/;
+            #sudo insmod silk.ko
+			#sudo usbkill;
+			nohup xfce4-terminal -e 'bash -c "sudo usbkill; bash"' -T "USB-KILL" &  > /dev/null 2>&1; 
+			sleep 1;
+		    clear;			 
+			echo "USB kill is enabled";
+        fi
+			
+		echo "";
+		read -n 1 -s -r -p "${reset}Press any key to continue.....";
+	fi
+	
+	
+	
+	if [[ $userInput = "11" ]]
+	then
+		clear;
+		echo "";
+		 
+       SERVICE='usbkill';
+		if (ps ax | grep -v grep | grep $SERVICE > /dev/null)
+		then	 
+			#cd  $Myhome_path/silk-guardian-master/;
+			#sudo rmmod silk;
+			sudo killall usbkill;
+			sleep 1;
+		    clear;
+			echo "USB kill is disabled";
+        else
+            
+			echo "USB kill is not running";
+        fi
+			
+		echo "";
+		read -n 1 -s -r -p "${reset}Press any key to continue.....";
+	fi
+	
+	
+	
+	if [[ $userInput = "12" ]]
+	then
+		clear;
+		echo "Opening /etc/usbkill.ini";
+		sleep 2;
+		sudo gedit /etc/usbkill.ini > /dev/null 2>&1; 
+		sudo systemctl restart usbguard;
+		echo "";
+		read -n 1 -s -r -p "${reset}Press any key to continue.....";
+	fi
+
+done
+
+
+ 
